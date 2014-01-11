@@ -1,3 +1,6 @@
+/**
+ * @author Peter Xu peterxu422@gmail.com
+ */
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;

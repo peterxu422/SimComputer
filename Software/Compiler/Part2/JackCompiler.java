@@ -1,3 +1,6 @@
+/**
+ * @author Peter Xu peterxu422@gmail.com
+ */
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -11,10 +14,10 @@ public class JackCompiler {
 	 * @param args
 	 */
 	public static void main(String[] args) {	
-		String arg = "Pong";
+		//String arg = "ConvertToBin";
 		//String file = "SquareGame";
 		//String home10path = "C:\\Users\\Peter\\Documents\\Nand2Tetris\\projects\\10\\"+arg+"\\";
-		String home11path = "C:\\Users\\Peter\\Documents\\Nand2Tetris\\projects\\11\\"+arg+"\\";
+		String home11path = "C:\\Users\\Peter\\Documents\\Nand2Tetris\\projects\\11\\"+args[0]+"\\";
 		String jackfile = "";
 		String path = "";
 		//path = home10path + "CompEngTest\\" + file + ".xml";
@@ -35,18 +38,18 @@ public class JackCompiler {
 				jFiles.add(files);
 		}
 		
-		BufferedWriter bw;
-		JackTokenizer jt;
+		//BufferedWriter bw;
+		//JackTokenizer jt;
 		CompilationEngine ce, ce2;
 		
 		try {
 				for(File f : jFiles) {
-				System.out.println("------" + f.getName() + "------");
-				jackfile = home11path + f.getName();
-				//path = home11path + "CompEng11Test\\" + f.getName().substring(0, f.getName().indexOf('.'));
-				path = home11path + f.getName().substring(0, f.getName().indexOf('.'));
-				ce = new CompilationEngine(jackfile, path);	
-			}
+					System.out.println("------" + f.getName() + "------");
+					jackfile = home11path + f.getName();
+					//path = home11path + "CompEng11Test\\" + f.getName().substring(0, f.getName().indexOf('.'));
+					path = home11path + f.getName().substring(0, f.getName().indexOf('.'));
+					ce = new CompilationEngine(jackfile, path);	
+				}
 			
 			//ce = new CompilationEngine(jackfile, path);
 			//ce2 = new CompilationEngine(jackfile2, path2);
@@ -105,10 +108,10 @@ public class JackCompiler {
 		}
 		
 		
-		String s = "\"HOW MANY NUMBERS? \"";
+		//String s = "\"HOW MANY NUMBERS? \"";
 		
 		//Regex for string constant
-		String pattern = "^[\"]([(\\S| )&&[^\"]])*[\"]?";
+		//String pattern = "^[\"]([(\\S| )&&[^\"]])*[\"]?";
 		//Regex for Identifier
 		//String pattern = "^[^\\d][\\w]*";
 		//String pattern = "\\s+";

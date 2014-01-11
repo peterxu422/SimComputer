@@ -1,3 +1,6 @@
+/**
+ * @author Peter Xu peterxu422@gmail.com
+ */
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileNotFoundException;
@@ -115,23 +118,35 @@ public class JackTokenizer {
 			currLine = handleQuotes(currLine);
 			currLine = currLine.replaceAll("\\s+", " ");
 			currLineTokens = currLine.split(" ");
-
+		
 			//System.out.println("currLine2:"+currLine+"|");
 			//printCLT();
 		
 		}while(currLine.isEmpty() | currLine.matches("\\s+"));
+
+		//System.out.println("currLine1:"+currLine+"|");
+		//printCLT();
 		
 		Vector<String> v = new Vector<String>();
 		for(int i=0; i < currLineTokens.length; i++)
 		{
-			if(currLineTokens[i].matches("[\\S]*[\"][\\S]*[\"][\\S]*"))
-				currLineTokens[i] = currLineTokens[i].replaceAll("#s@", " ");
-				
+			if(currLineTokens[i].isEmpty())
+				continue;
+			
+			/*
+			boolean strconst = false;
+			if(currLineTokens[i].matches("[\\S]*[\"][\\S]*[\"][\\S]*")) {
+				//currLineTokens[i] = currLineTokens[i].replaceAll("#s@", " ");
+				strconst = true;
+			}
+			*/
+			
 			String tok = currLineTokens[i];
-			//System.out.println("tok:"+tok+"|");
+			
 			if(tok.isEmpty())
 				continue;
 			
+			//Checks if there are symbols in the current token. Should skip this if clt is a string const
 			boolean hasSym = false;
 			for(int j=0; j < sym.length; j++)
 			{
@@ -144,17 +159,27 @@ public class JackTokenizer {
 					int lastIdx = 0;
 					for(int k=0; k < tok.length(); k++)
 					{
-						for(int l=0; l < sym.length; l++)
-						{
-							if(tok.charAt(k) == sym[l])
+						if(tok.charAt(k) == '\"') {
+							k++;
+							while(tok.charAt(k) != '\"')
+								k++;
+							String str = tok.substring(lastIdx, ++k);
+							str = str.replaceAll("#s@", " ");
+							v.add(str);
+							lastIdx = k;
+						}
+						else {
+							for(int l=0; l < sym.length; l++)
 							{
-								if(lastIdx != k)
-									v.add(tok.substring(lastIdx, k));
-								v.add(sym[l] + "");
-								lastIdx = k+1;
+								if(tok.charAt(k) == sym[l])
+								{
+									if(lastIdx != k)
+										v.add(tok.substring(lastIdx, k));
+									v.add(sym[l] + "");
+									lastIdx = k+1;
+								}
 							}
 						}
-						
 						if(lastIdx < tok.length() && k == tok.length()-1)
 							v.add(tok.substring(lastIdx, tok.length()));
 					}
@@ -179,7 +204,7 @@ public class JackTokenizer {
 		//System.out.println("finalcurrLine:" + currLine + "|"+currLine.isEmpty());
 	}
 	
-	private void printCLT() {
+	public void printCLT() {
 		System.out.print("[");
 		for(int i=0; i < currLineTokens.length; i++)
 		{
@@ -251,7 +276,7 @@ public class JackTokenizer {
 		catch (NumberFormatException nfe) {
 			//strc
 			// Returns true if the string contains a arbitrary number of characters except b; regex: "([\\w&&[^b]])*"
-			if(currToken.matches("^[\"]([(\\S| )&&[^\"]])*[\"]?"))
+			if(currToken.matches("^[\"]([(\\S| )&&[^\"]])*[\"]"))
 				return STRC;
 		}
 		

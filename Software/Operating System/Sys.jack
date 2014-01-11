@@ -1,0 +1,77 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Sys.jack
+
+/**
+ * A library of basic system services.
+ */
+class Sys {
+
+    /** Performs all the initializations required by the OS. */
+    function void init() {
+		do Memory.init();	//Memory init must come first
+		do Math.init();
+		do Output.init();
+		do Screen.init();
+		do Keyboard.init();
+		do Main.main();
+		do Sys.halt();
+		return;
+    }
+
+    /** Halts execution. */
+    function void halt() {
+		while(true) {
+		}
+		return;
+    }
+
+    /** Waits approximately duration milliseconds and then returns. */
+    function void wait(int duration) {
+		var int ctr, i;
+		
+		if(duration < 1) {
+			do Sys.error(1);
+		}
+		let i = 0;
+		while(i < 80) {
+			let ctr = 0;
+			while(ctr < duration) {
+				let ctr = ctr + 1;
+			}
+			let i = i + 1;
+		}
+		
+		return;
+    }
+
+    /** Prints the given error code in the form "ERR<errorCode>", and halts. */
+    function void error(int errorCode) {
+		var String s, err;
+		var boolean b;
+		
+		let b = (((errorCode > 0) & (errorCode < 9)) | ((errorCode > 11) & (errorCode < 21)));
+		if(~b) {
+			do Output.println();
+			do Output.printString("Invalid Error Code");
+			do Sys.halt();
+		}
+		
+		let err = String.new(2);
+		do err.setInt(errorCode);
+		let s = String.new(5);
+		let s = s.appendChar(69);
+		let s = s.appendChar(82);
+		let s = s.appendChar(82);
+		let s = s.appendChar(err.charAt(0));
+		
+		if(err.length() > 1) {
+			let s = s.appendChar(err.charAt(1));
+		}
+		
+		do Output.printString(s);
+		do Sys.halt();
+		return;
+    }
+}

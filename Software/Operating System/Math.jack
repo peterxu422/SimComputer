@@ -1,0 +1,190 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A basic math library.
+ */
+class Math {
+
+	static Array twoToThe;
+
+    /** Initializes the library. */
+    function void init() {
+		let twoToThe = Array.new(16);
+		
+		//Faster and more efficient to hardcode the values
+		let twoToThe[0] = 1;
+		let twoToThe[1] = 2;
+		let twoToThe[2] = 4;
+		let twoToThe[3] = 8;
+		let twoToThe[4] = 16;
+		let twoToThe[5] = 32;
+		let twoToThe[6] = 64;
+		let twoToThe[7] = 128;
+		let twoToThe[8] = 256;
+		let twoToThe[9] = 512;
+		let twoToThe[10] = 1024;
+		let twoToThe[11] = 2048;
+		let twoToThe[12] = 4096;
+		let twoToThe[13] = 8192;
+		let twoToThe[14] = 16384;
+		let twoToThe[15] = 32767;
+		
+		return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+		if(x < 0) {
+			return -x;
+		}
+		return x;
+    }
+
+    /** Returns the product of x and y. */
+    function int multiply(int x, int y) {
+		//x,y > 0. n=16 Hack is 16-bit computer
+		var int sum, shiftedX, j, ypos;
+		
+		if((x=0) | (y=0)) {
+			return 0;
+		}
+		
+		let sum = 0;
+		let shiftedX = Math.abs(x);
+		let j = 0;
+		let ypos = Math.abs(y);
+		
+		while(j < 15) {
+			if(Math.bit(ypos,j) = true) {
+				let sum = sum + shiftedX;
+			}
+			let shiftedX = shiftedX + shiftedX; //shiftedX * 2
+			let j = j + 1;
+		}
+		
+		//Check negative
+		if((x<0 & y>0) | (x>0 & y<0)) {
+			let sum = -sum;
+		}
+		
+		return sum;
+    }
+
+    /** Returns the integer part of x/y. */
+    function int divide(int x, int y) {
+		var int q, factor;
+		var boolean neg;
+		
+		if(y=0) {
+			do Sys.error(3);
+		}
+		
+		let neg = false;
+		let factor = 2;
+		//Check negative
+		if((x<0 & y>0) | (x>0 & y<0)) {
+			let neg = true;
+		}
+		
+		let x = Math.abs(x);
+		let y = Math.abs(y);
+
+		if(y > x) {
+			return 0;
+		}
+	
+		let q = Math.divide(x, 2*y);
+		
+		//Overflow
+		if(((y > 0) & (2*y < 0))) {
+			let factor = 1;
+		}
+		
+		if((x - (factor*q*y) < y)) {
+			if(neg) {
+				return -(2*q);
+			}
+			else {
+				return 2*q;
+			}
+		}
+		else {
+			if(neg) {
+				return -((2*q)+1);
+			}
+			else {
+				return ((2*q)+1);
+			}
+		}
+		
+    }
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+		var int y, j, tmp, tmp2;
+		let y = 0;
+		let j = 7; //n/2 - 1
+		
+		while( (j > 0) | (j=0) ) {
+			let tmp = y + twoToThe[j];
+			let tmp2 = tmp * tmp;
+			if( ((tmp2 < x) | (tmp2 = x)) & (tmp2 > 0)) {
+				let y = tmp;
+			}
+			let j = j - 1;
+		}
+		
+		return y;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+		if(a > b) {
+			return a;
+		}
+		else {
+			if(a < b) {
+				return b;
+			}
+		}
+		
+		return a;
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+		if(a < b) {
+			return a;
+		}
+		else {
+			if(a > b) {
+				return b;
+			}
+		}
+		
+		return a;
+    }
+	
+	/** Returns true if the jth bit of integer x is 1 and false otherwise */
+	function boolean bit(int x, int j) {
+		var int tmp, ctr, twoToTheVal;
+		var boolean one;
+		let tmp = x;
+		let ctr = 15;
+		
+		while( (ctr > j) | (ctr = j) ) {
+			let one = false;
+			let twoToTheVal = twoToThe[ctr];
+			if( (twoToTheVal < tmp) | (twoToTheVal = tmp) ) {
+				let one = true;
+				let tmp = tmp - twoToTheVal;
+			}
+			let ctr = ctr - 1;
+		}
+		
+		return one;
+	}
+}

@@ -1,3 +1,6 @@
+/**
+ * @author Peter Xu peterxu422@gmail.com
+ */
 import java.util.Hashtable;
 import java.util.Enumeration;
 
@@ -35,10 +38,10 @@ public class SymbolTable {
 	/**
 	 * Starts a new subroutine scope (i.e. resets the subroutine's symbol table)
 	 */
-	public void startSubroutine() {
+	public void startSubroutine(String subtype) {
 		subScope.clear();
 		currScope = subScope;
-		subArgIdx = 0;
+		subArgIdx = subtype.equals("method") ? 1 : 0;
 		subVarIdx = 0;
 	}
 	

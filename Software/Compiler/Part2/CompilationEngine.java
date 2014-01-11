@@ -1,3 +1,6 @@
+/**
+ * @author Peter Xu peterxu422@gmail.com
+ */
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -102,7 +105,7 @@ public class CompilationEngine {
 		//no advance() needed before, by assumption of CompileClassVarDec()
 		String t = jt.keyWord();
 		while(t != null && (t.equals("constructor") | t.equals("function") | t.equals("method"))) {
-			st.startSubroutine();
+			st.startSubroutine(t);
 			CompileSubroutine();
 			jt.advance();
 			t = jt.keyWord();
@@ -340,6 +343,7 @@ public class CompilationEngine {
 			System.exit(1);
 		}
 		
+		
 		//parameterList
 		jt.advance();
 		compileParameterList();
@@ -376,8 +380,7 @@ public class CompilationEngine {
 			compileVarDec();
 			jt.advance();
 		}
-		
-		
+				
 		vw.writeFunction(className + "." + funcName, st.VarCount(SymbolTable.V));
 		if(subType.equals("constructor")) {
 			vw.writePush("CONST", st.VarCount(SymbolTable.F));
@@ -432,7 +435,7 @@ public class CompilationEngine {
 		
 		String t = jt.keyWord();
 		String type = jt.tokenType();
-		if(t != null && type != null && (type.equals(JackTokenizer.K) || type.equals(JackTokenizer.ID))) //Need to do it this way to handle ? operator in grammar
+		if((t != null && type != null && (type.equals(JackTokenizer.K)) || type.equals(JackTokenizer.ID))) //Need to do it this way to handle ? operator in grammar
 		{
 			//type
 			if(type.equals(JackTokenizer.K) && (t.equals("int") | t.equals("char") | t.equals("boolean"))) {
@@ -443,6 +446,7 @@ public class CompilationEngine {
 			else if(type.equals(JackTokenizer.ID)) {
 				STtype = jt.identifier();
 				String extra = "";
+				
 				if(st.IndexOf(jt.identifier()) == -1 && st.KindOf(jt.identifier()).equals("NONE"))
 					extra = " (class, used)";
 				else {
@@ -726,6 +730,7 @@ public class CompilationEngine {
 		//subroutineCall: subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
 		//subroutineName
 		jt.advance();
+		
 		if(jt.tokenType() != null && jt.tokenType().equals(JackTokenizer.ID)) {	//subroutineName | className | varName
 			String extra = "";
 			if(st.IndexOf(jt.identifier()) == -1 && st.KindOf(jt.identifier()).equals("NONE"))
@@ -927,16 +932,28 @@ public class CompilationEngine {
 			else {
 				System.out.println("Line " + jt.getNumLine() + ": Expected symbol ']'. But encountered: " + JackTokenizer.currToken);
 				System.exit(1);
-			}
+			}	
 			jt.advance();
-			
-			vw.writePop("POINTER", 1);
 		}
 		
 		//no advance
 		//=
 		if(jt.symbol() != '#' && jt.symbol() == '=') {
 			buffer += "= ";
+			
+			if(array) {
+				//expression
+				jt.advance();
+				CompileExpression();
+				vw.writePop("TEMP", 0);
+				vw.writePop("POINTER", 1);
+				vw.writePush("TEMP", 0);
+			}
+			else {
+				jt.advance();
+				CompileExpression();
+			}
+			
 			bw.write(indent + "<symbol> = </symbol>\n");
 			System.out.println(indent + "<symbol> = </symbol>\n");
 		}
@@ -945,10 +962,8 @@ public class CompilationEngine {
 			System.exit(1);
 		}
 		
-		//expression
-		jt.advance();
-		CompileExpression();
 		
+
 		//Assume the right-hand side value is pushed onto the stack already
 		if(!st.KindOf(vName).equals("NONE")) {
 			if(array) {
@@ -1287,6 +1302,7 @@ public class CompilationEngine {
 			
 			jt.advance();
 			CompileTerm();
+						
 			
 			//Assume all the things are already pushed
 			//Assume only binary operations in this part of the code? Unary occurs in CompileTerm()?
@@ -1303,8 +1319,11 @@ public class CompilationEngine {
 							break;
 			case '>':		vw.WriteArithmetic("GT");
 							break;
-			case '=':		vw.WriteArithmetic("EQ");
-							break;
+			case '=':		{
+								vw.WriteArithmetic("EQ");
+								break;
+								
+							}
 			case '*':		vw.writeCall("Math.multiply", 2);
 							break;
 			case '/':		vw.writeCall("Math.divide", 2);
@@ -1328,6 +1347,7 @@ public class CompilationEngine {
 	 * 
 	 * term: integerConstant|stringConstant|keywordConstant|varName|varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
 	 * 
+	 * subroutineCall: subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
 	 * Assume CompileTerm() advances to the next token
 	 */
 	public void CompileTerm() throws IOException {
@@ -1375,6 +1395,8 @@ public class CompilationEngine {
 					vw.writePush("CONST", 0);
 					vw.WriteArithmetic("NOT");
 				}
+				else if(jt.keyWord().equals("null"))
+					vw.writePush("CONST", 0);
 				else if(jt.keyWord().equals("this"))
 					vw.writePush("POINTER", 0);
 				
@@ -1384,6 +1406,7 @@ public class CompilationEngine {
 			else if(type.equals(JackTokenizer.ID)) {
 				boolean array = false;
 				String vmSubName = "";
+				String obj = jt.identifier();
 				String extra = "";
 				if(st.IndexOf(jt.identifier()) == -1 && st.KindOf(jt.identifier()).equals("NONE"))
 					extra = " (class or subroutine, " + DorU + ")";
@@ -1436,7 +1459,8 @@ public class CompilationEngine {
 					else if(jt.symbol() == '.') {
 						buffer += ".";
 						if(st.IndexOf(vmSubName) != -1) {
-							vw.writePush(st.KindOf(vmSubName), st.IndexOf(vmSubName));
+							//Not needed because already handled above
+							//vw.writePush(st.KindOf(vmSubName), st.IndexOf(vmSubName));
 							numParams++;
 							vmSubName = st.TypeOf(vmSubName);
 						}
@@ -1574,7 +1598,7 @@ public class CompilationEngine {
 		String t = jt.tokenType();
 		if(t != null && (t.equals(JackTokenizer.INTC) || t.equals(JackTokenizer.STRC) || t.equals(JackTokenizer.K) || 
 				t.equals(JackTokenizer.ID)) || (t.equals(JackTokenizer.SYM)) && (jt.symbol() == '(' || jt.symbol() == '-' || jt.symbol() == '~' )) {
-		
+			
 			CompileExpression();
 			numParams++;
 			

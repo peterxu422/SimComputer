@@ -1,0 +1,109 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * Memory operations library.
+ */ 
+class Memory {
+	
+	static Array memory, freeList;
+	
+    /** Initializes memory parameters. */
+    function void init() {
+		var int debug;
+		
+		let memory = 0;
+		let freeList = 2048; //base heap
+		let freeList[0] = 14335; // 16383 - 2048
+		let freeList[1] = 0;
+		let debug = 7777;
+		return;
+    }
+
+    /** Returns the value of the main memory at the given address. */
+    function int peek(int address) {
+		return memory[address];
+    }
+
+    /** Sets the value of the main memory at this address
+     *  to the given value. */
+    function void poke(int address, int value) {
+		let memory[address] = value;
+		return;
+    }
+
+    /** finds and allocates from the heap a memory block of the 
+     *  specified size and returns a reference to its base address. */
+    function int alloc(int size) {
+		var Array block, pseg, cseg, nseg;
+		var int rem, debug;
+		var boolean foundSeg;
+		//let debug = 7777;
+		if(size < 0) {
+			do Sys.error(5);
+		}
+		
+		let foundSeg = false;
+		let pseg = 0;
+		let cseg = freeList;
+		let nseg = cseg[1];
+		
+		// Search free-list: first-fit heuristics
+		while((~(cseg = 0) & (~foundSeg))) {
+			if(cseg[0] > size) {
+				let foundSeg = true;
+			}
+			else {
+				let pseg = cseg;
+				let cseg = cseg[1];
+				if(cseg = 0) {
+					let nseg = 0;
+				}
+				else {
+					let nseg = cseg[1];
+				}
+			}
+		}
+		
+		if(~foundSeg) {
+			//Return failure or attempt defrag
+			do Sys.error(6);
+		}
+		
+		let rem = cseg[0] - (size + 1);
+		if(rem = 0) {
+			//Set prev segment's next to cur's next
+			let pseg[1] = nseg;
+		}
+		else {
+			let block = cseg + rem;	
+			let block[0] = size + 1;
+			let block = block + 1;
+			let cseg[0] = rem;
+		}
+		
+		return block;
+    }
+
+    /** De-allocates the given object and frees its space. */
+    function void deAlloc(int object) {
+		var Array seg, iter;
+		var int debug;
+		
+		let seg = object - 1;
+		let seg[0] = object[-1];
+		
+		let iter = freeList;
+		let debug = 7777;
+		//Navigate to the end of the list
+		while( ~(iter[1] = 0) ) {
+			let iter = iter[1];
+		}
+		
+		let iter[1] = seg;
+		
+		return;
+    }    
+}

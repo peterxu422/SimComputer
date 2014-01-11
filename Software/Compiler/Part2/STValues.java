@@ -1,4 +1,6 @@
-
+/**
+ * @author Peter Xu peterxu422@gmail.com
+ */
 public class STValues {
 	
 	private String type, kind;
